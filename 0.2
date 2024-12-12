@@ -1,0 +1,87 @@
+from tkinter import *
+import os
+
+root = Tk()
+root.title("files")
+root.geometry('750x500')
+var = IntVar()
+info_var = IntVar()
+
+entry = Entry(width=40)
+entry.grid(row=0, column=1, padx=5, pady=5)
+
+
+def analyze_path():
+    global entry
+    path = entry.get().strip()
+    if not path:
+        result_label.config(text="Введите путь")
+        return
+    if os.path.exists(path):
+        num_files = 0
+        num_dirs = 0
+        images = 0
+        music = 0
+        documents = 0
+        videos = 0
+        gifs = 0
+
+        def process_file(file_name):
+            nonlocal images, music, documents, videos, gifs
+            ext = file_name.lower()
+            if ext.endswith(('.jpg', '.png')):
+                images += 1
+            elif ext.endswith('.mp3'):
+                music += 1
+            elif ext.endswith('.txt'):
+                documents += 1
+            elif ext.endswith('.mp4'):
+                videos += 1
+            elif ext.endswith('.gif'):
+                gifs += 1
+
+        if var.get() == 1:
+            for root_dir, dirs, files in os.walk(path):
+                num_dirs += len(dirs)
+                num_files += len(files)
+                if info_var.get() == 1:
+                    for file_name in files:
+                        process_file(file_name)
+        else:
+            with os.scandir(path) as entries:
+                for entry_item in entries:
+                    if entry_item.is_file():
+                        num_files += 1
+                        if info_var.get() == 1:
+                            process_file(entry_item.name)
+                    elif entry_item.is_dir():
+                        num_dirs += 1
+
+
+        result = f"Папок: {num_dirs}, Файлов: {num_files}"
+        if info_var.get() == 1:
+            result += (
+                f"\nКартинок: {images}, Музыки: {music}, Документов: {documents}, "
+                f"Видео: {videos}, GIF: {gifs}"
+            )
+        result_label.config(text=result)
+    else:
+        result_label.config(text="Такого пути нет")
+
+
+label = Label(text='Введите путь: ')
+label.grid(row=0, column=0, padx=5, pady=10, sticky=W)
+
+button = Button(text='Проверить', padx=20, command=analyze_path)
+button.grid(row=0, column=2, padx=5, pady=5)
+
+result_label = Label(text='', font=('Times New Roman', 15))
+result_label.grid(row=1, column=0, columnspan=4, pady=10)
+
+checkbox = Checkbutton(root, text="Искать вложенные файлы", variable=var)
+checkbox.grid(row=0, column=3, padx=5, pady=5)
+
+info_checkbox = Checkbutton(root, text="Тип файла", variable=info_var)
+info_checkbox.grid(row=0, column=4, padx=5, pady=5)
+
+root.mainloop()
