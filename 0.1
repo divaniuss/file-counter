@@ -1,0 +1,48 @@
+from tkinter import *
+import os
+
+root = Tk()
+root.title("files")
+root.geometry('750x500')
+var = IntVar()
+
+entry = Entry(width=40)
+entry.grid(row=0, column=1, padx=5, pady=5)
+
+def analyze_path():
+    global entry
+    path = entry.get().strip()
+    if not path:
+        result_label.config(text="Введите путь")
+        return
+    if os.path.exists(path):
+        num_files = 0
+        num_dirs = 0
+        if var.get() == 1:
+            for root_dir, dirs, files in os.walk(path):
+                num_dirs += len(dirs)
+                num_files += len(files)
+        else:
+            with os.scandir(path) as entries:
+                for entry_item in entries:
+                    if entry_item.is_file():
+                        num_files += 1
+                    elif entry_item.is_dir():
+                        num_dirs += 1
+        result_label.config(text=f"Папок: {num_dirs}, Файлов: {num_files}")
+    else:
+        result_label.config(text="Такого пути нет")
+
+label = Label(text='Введите путь: ')
+label.grid(row=0, column=0, padx=5, pady=10, sticky=W)
+
+button = Button(text='Проверить', padx=20, command=analyze_path)
+button.grid(row=0, column=2, padx=5, pady=5)
+
+result_label = Label(text='', font=('Times New Roman', 15))
+result_label.grid(row=1, column=0, columnspan=3, pady=10)
+
+checkbox = Checkbutton(root, text="Искать вложенные файлы", variable=var)
+checkbox.grid(row=0, column=3, padx=5, pady=5)
+
+root.mainloop()
